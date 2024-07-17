@@ -41,7 +41,7 @@ fn sample_reads(db: &jseqio::seq_db::SeqDB, read_length: usize, n_reads: usize, 
 
 fn main() {
 
-    let cli = clap::Command::new("Sample k-mers")
+    let cli = clap::Command::new("Sample k-mers. k-mers with non-ACGT characters are not sampled.")
         .arg_required_else_help(true)
         .arg(clap::Arg::new("source-file")
             .long("source-file")
