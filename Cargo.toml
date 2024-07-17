@@ -1,5 +1,5 @@
 [package]
-name = "sample_seqs"
+name = "sample_kmers"
 version = "0.1.0"
 edition = "2021"
 
