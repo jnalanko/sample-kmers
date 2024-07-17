@@ -3,7 +3,7 @@ use std::cmp::max;
 use jseqio::writer::SeqRecordWriter;
 use rand::{distributions::Distribution, RngCore, SeedableRng};
 
-fn sample_reads(db: &jseqio::seq_db::SeqDB, read_length: usize, n_reads: usize, seed: u64) -> Vec<Vec<u8>> {
+fn sample_reads(db: &jseqio::seq_db::SeqDB, read_length: usize, n_reads: usize, seed: u64) -> Vec<&[u8]> {
 
     // Create a seeded RNG
     let mut seed_32_bytes: [u8; 32] = [0; 32];
@@ -16,15 +16,15 @@ fn sample_reads(db: &jseqio::seq_db::SeqDB, read_length: usize, n_reads: usize, 
     .collect();
     let seq_distribution = rand::distributions::WeightedIndex::new(seq_weights).unwrap();
 
-    let mut sampled_reads = Vec::<Vec::<u8>>::with_capacity(n_reads);
+    let mut sampled_reads = Vec::<&[u8]>::with_capacity(n_reads);
     while sampled_reads.len() < n_reads {
         let seq_idx = seq_distribution.sample(&mut rng);
-        let seq = db.get(seq_idx).seq.to_vec();
+        let seq = db.get(seq_idx).seq;
 
         assert!(seq.len() >= read_length); // This should have weight zero and thus never happen
 
         let start = rng.next_u64() as usize % (seq.len() - read_length + 1);
-        let read = seq[start..start+read_length].to_owned();
+        let read = &seq[start..start+read_length];
 
         if read.iter().any(|&c| c != b'A' && c != b'C' && c != b'G' && c != b'T') {
             continue;
@@ -82,7 +82,7 @@ fn main() {
     let mut writer = jseqio::writer::DynamicFastXWriter::new_to_file(output_file).unwrap();
 
     for seq in reads {
-        writer.write_ref_record(&jseqio::record::RefRecord{head: b"", seq: &seq, qual: None}).unwrap();
+        writer.write_ref_record(&jseqio::record::RefRecord{head: b"", seq: seq, qual: None}).unwrap();
     }
 
 }
